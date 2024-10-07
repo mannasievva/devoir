@@ -1,0 +1,72 @@
+import iip.lib.Color;
+import iip.lib.Counter;
+import iip.lib.Degrees;
+import iip.lib.Painter;
+
+public class SignalPlot {
+
+    static final int WIDTH = 800;
+    static final int HEIGHT = 300;
+    
+    static final double X_MIN = 0;
+    static final double X_MAX = 720;
+    static final double X_LEFT = -40;
+    static final double X_RIGHT = 760;
+    static final double Y_TOP = 2.5;
+    static final double Y_BOTTOM = -2.5;
+
+    static Painter painter = new Painter(WIDTH, HEIGHT);
+
+    static double f(double x) {
+        return ((Degrees.sin(x) + Degrees.sin(2 * x)) * Degrees.cos(12 * x)) * (1 - x / 1440);
+    }
+
+    public static void main(String[] args) {
+        defineCoords(X_LEFT, X_RIGHT, Y_TOP, Y_BOTTOM, WIDTH, HEIGHT);
+        drawAxes();
+        drawCurve();
+        painter.usedCanvas().saveAsPNG("data/images", "signal.png");
+    }
+
+    static double xOrigin;
+    static double yOrigin;
+    static double xScale;
+    static double yScale;
+
+    static void defineCoords(double xLeft, double xRight, double yTop, double yBottom, double width, double height) {
+        xScale = width / (xRight - xLeft);
+        yScale = height / (yBottom - yTop);
+        xOrigin = -xLeft * xScale;
+        yOrigin = -yTop * yScale;
+    }
+
+    static double xCanvas(double x) {
+        return xOrigin + x * xScale;
+    }
+
+    static double yCanvas(double y) {
+        return yOrigin + y * yScale;
+    }
+
+    static void drawAxes() {
+        drawSegment(X_MIN - 10, 0, X_MAX + 10, 0);
+        drawSegment(0, 2, 0, -2);
+    }
+
+    static void drawCurve() {
+        painter.setColor(Color.BLUE);
+        for (int c : new Counter((int)(X_MIN * xScale) + 1, (int)(X_MAX * xScale))) {
+            double x1 = (c - 1) / xScale;
+            double y1 = f(x1);
+            double x2 = c / xScale;
+            double y2 = f(x2);
+            drawSegment(x1, y1, x2, y2);
+            painter.pause(0.00);
+        }
+    }
+    
+    static void drawSegment(double x1, double y1, double x2, double y2) {
+        painter.drawLine(xCanvas(x1), yCanvas(y1), xCanvas(x2), yCanvas(y2));
+    }
+
+}
